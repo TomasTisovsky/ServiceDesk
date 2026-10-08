@@ -8,6 +8,16 @@ Dotenv::createImmutable(dirname(__DIR__))->load();
 
 date_default_timezone_set('UTC');
 
+if (PHP_SAPI !== 'cli') {
+    session_start([
+        'cookie_httponly' => true,
+        'cookie_samesite' => 'Lax',
+        'cookie_secure' => !empty($_SERVER['HTTPS'])
+            && $_SERVER['HTTPS'] !== 'off',
+        'use_strict_mode' => true,
+    ]);
+}
+
 return [
     'app' => [
         'name' => $_ENV['APP_NAME'],
