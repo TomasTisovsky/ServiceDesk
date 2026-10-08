@@ -1,0 +1,1 @@
+- [Dátový model](docs/data-model.md)
