@@ -77,8 +77,7 @@ Zamestnanec zobrazí zoznam a detail svojich tiketov.
 
 Akceptačné kritériá:
 - Zoznam obsahuje ID, názov, zariadenie, stav, prioritu a čas vytvorenia.
-- Detail obsahuje aj opis, prideleného technika, komentáre,
-  históriu stavov a spôsob riešenia, ak bol zapísaný.
+- Detail obsahuje aj opis, prideleného technika, komentáre a spôsob riešenia, ak bol zapísaný.
 - Zamestnanec nemá prístup k tiketom iných zamestnancov.
 
 ### FR-06 – Úprava nového tiketu
@@ -101,7 +100,7 @@ Akceptačné kritériá:
   prideleného technika a čas vytvorenia.
 - Technik môže filtrovať podľa stavu a priority.
 - Filtre možno použiť súčasne a následne zrušiť.
-- Detail obsahuje všetky údaje tiketu, komentáre a históriu stavov.
+- Detail obsahuje všetky údaje tiketu a komentáre.
 
 ### FR-08 – Prevzatie tiketu
 
@@ -113,7 +112,6 @@ Akceptačné kritériá:
 - Jeden tiket môže mať najviac jedného prideleného technika.
 - Pri súčasnom prevzatí dvoma technikmi uspeje iba jeden.
 - Už pridelený tiket nemôže prevziať iný technik.
-- Zmena stavu sa zaznamená do histórie.
 
 ### FR-09 – Zmena priority
 
@@ -132,7 +130,6 @@ Akceptačné kritériá:
 - Musí uviesť neprázdny spôsob riešenia.
 - Systém zaznamená čas vyriešenia.
 - Bez spôsobu riešenia sa stav nezmení.
-- Zmena sa zaznamená do histórie stavov.
 - Vyriešený tiket zostáva dostupný na zobrazenie.
 - Vyriešený tiket nemožno znovu otvoriť ani upravovať.
 - Po vyriešení nemožno pridávať ďalšie komentáre.
@@ -149,17 +146,7 @@ Akceptačné kritériá:
 - V MVP nemožno komentáre upravovať ani odstraňovať.
 - Ostatní technici môžu komentáre čítať, ale nemôžu ich pridávať.
 
-### FR-12 – História stavov
-
-Systém uchováva históriu vytvorenia a zmien stavu tiketu.
-
-Akceptačné kritériá:
-- Záznam obsahuje pôvodný stav, nový stav, používateľa a čas udalosti.
-- Pri vytvorení je pôvodný stav prázdny a nový stav Nový.
-- História je dostupná v detaile tiketu.
-- Používatelia nemôžu históriu upravovať ani odstraňovať.
-
-### FR-13 – Kontrola oprávnení
+### FR-12 – Kontrola oprávnení
 
 Systém kontroluje oprávnenia na serveri pri každom čítaní alebo zmene dát.
 
@@ -211,6 +198,7 @@ Iné prechody stavov nie sú v MVP povolené.
 - Prílohy.
 - E-mailové notifikácie.
 - SLA a automatické eskalácie.
+- História zmien stavov a úprav tiketov.
 
 ## 7. Podmienky dokončenia MVP
 
