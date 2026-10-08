@@ -1,1 +1,2 @@
 - [Dátový model](docs/data-model.md)
+- - [Architektúra aplikácie](docs/architecture.md)
