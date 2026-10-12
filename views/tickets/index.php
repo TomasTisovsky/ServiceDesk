@@ -1,6 +1,7 @@
 <?php
 /** @var array $tickets */
 /** @var array $user */
+/** @var array $filters */
 
 $escape = static fn(string $value): string =>
     htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -29,14 +30,47 @@ $priorities = [
         <h1><?= $user['role'] === 'TECHNICIAN' ? 'Všetky tikety' : 'Moje tikety' ?></h1>
 
         <p><a href="/">Úvodná stránka</a></p>
+        <form method="get" action="/tickets">
+            <label for="status">Stav</label>
+            <select id="status" name="status">
+                <option value="">Všetky stavy</option>
+
+                <?php foreach ($statuses as $value => $label): ?>
+                    <option
+                            value="<?= $escape($value) ?>"
+                            <?= $filters['status'] === $value ? 'selected' : '' ?>
+                    >
+                        <?= $escape($label) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
+            <label for="priority">Priorita</label>
+            <select id="priority" name="priority">
+                <option value="">Všetky priority</option>
+
+                <?php foreach ($priorities as $value => $label): ?>
+                    <option
+                            value="<?= $escape($value) ?>"
+                            <?= $filters['priority'] === $value ? 'selected' : '' ?>
+                    >
+                        <?= $escape($label) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
+            <button type="submit">Filtrovať</button>
+            <a href="/tickets">Zrušiť filtre</a>
+        </form>
 
         <?php if ($user['role'] === 'EMPLOYEE'): ?>
             <p><a href="/tickets/create">Vytvoriť tiket</a></p>
         <?php endif; ?>
 
         <?php if ($tickets === []): ?>
-            <p>Zatiaľ tu nie sú žiadne tikety.</p>
+            <p>Žiadne tikety nezodpovedajú zvoleným podmienkam.</p>
         <?php else: ?>
+
             <table>
                 <thead>
                     <tr>

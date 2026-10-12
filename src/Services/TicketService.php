@@ -14,9 +14,28 @@ class TicketService
     ) {
     }
 
-    public function listForUser(int $userId, string $role): array
-    {
-        return $this->tickets->findVisibleTo($userId, $role);
+    public function listForUser(
+        int $userId,
+        string $role,
+        ?string $status = null,
+        ?string $priority = null
+    ): array {
+        if ($status !== null
+            && !in_array($status, ['NEW', 'IN_PROGRESS', 'RESOLVED'], true)) {
+            throw new \InvalidArgumentException('Neplatný filter stavu.');
+        }
+
+        if ($priority !== null
+            && !in_array($priority, ['LOW', 'MEDIUM', 'HIGH'], true)) {
+            throw new \InvalidArgumentException('Neplatný filter priority.');
+        }
+
+        return $this->tickets->findVisibleTo(
+            $userId,
+            $role,
+            $status,
+            $priority
+        );
     }
     public function availableDevices(int $userId, string $role): array
     {

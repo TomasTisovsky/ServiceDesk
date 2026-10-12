@@ -13,8 +13,13 @@ class TicketRepository
     {
     }
 
-    public function findVisibleTo(int $userId, string $role): array
-    {
+    public function findVisibleTo(
+        int $userId,
+        string $role,
+        ?string $status = null,
+        ?string $priority = null
+    ): array {
+
         if (!in_array($role, ['EMPLOYEE', 'TECHNICIAN'], true)) {
             throw new InvalidArgumentException('Neplatná rola.');
         }
@@ -38,12 +43,25 @@ class TicketRepository
             LEFT JOIN users tech ON tech.id = t.technician_id
         ';
 
+        $conditions = [];
+
         if ($role === 'EMPLOYEE') {
-            $sql .= ' WHERE t.author_id = :user_id';
+            $conditions[] = 't.author_id = :user_id';
+        }
+
+        if ($status !== null) {
+            $conditions[] = 't.status = :status';
+        }
+
+        if ($priority !== null) {
+            $conditions[] = 't.priority = :priority';
+        }
+
+        if ($conditions !== []) {
+            $sql .= ' WHERE ' . implode(' AND ', $conditions);
         }
 
         $sql .= ' ORDER BY t.created_at DESC, t.id DESC';
-
         $connection = $this->database->connection();
         $statement = oci_parse($connection, $sql);
 
@@ -57,7 +75,15 @@ class TicketRepository
                     throw new RuntimeException('Naviazanie používateľa zlyhalo.');
                 }
             }
+            if ($status !== null
+                && !oci_bind_by_name($statement, ':status', $status)) {
+                throw new RuntimeException('Naviazanie stavu zlyhalo.');
+            }
 
+            if ($priority !== null
+                && !oci_bind_by_name($statement, ':priority', $priority)) {
+                throw new RuntimeException('Naviazanie priority zlyhalo.');
+            }
             if (!oci_execute($statement, OCI_NO_AUTO_COMMIT)) {
                 throw new RuntimeException('Načítanie tiketov zlyhalo.');
             }

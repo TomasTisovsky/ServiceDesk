@@ -22,14 +22,38 @@ class TicketController
 
         $user = $_SESSION['user'];
 
-        $tickets = $this->ticketService->listForUser(
-            $user['id'],
-            $user['role']
-        );
+        $filters = [
+            'status' => '',
+            'priority' => '',
+        ];
+
+        foreach (array_keys($filters) as $field) {
+            $value = $_GET[$field] ?? '';
+
+            if (!is_string($value)) {
+                http_response_code(400);
+                echo 'Neplatný filter.';
+                return;
+            }
+
+            $filters[$field] = trim($value);
+        }
+
+        try {
+            $tickets = $this->ticketService->listForUser(
+                $user['id'],
+                $user['role'],
+                $filters['status'] === '' ? null : $filters['status'],
+                $filters['priority'] === '' ? null : $filters['priority']
+            );
+        } catch (\InvalidArgumentException $exception) {
+            http_response_code(400);
+            echo 'Neplatný stav alebo priorita filtra.';
+            return;
+        }
 
         require dirname(__DIR__, 2) . '/views/tickets/index.php';
     }
-
     public function create(): void
     {
         Auth::requireLogin();
