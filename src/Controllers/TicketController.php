@@ -6,11 +6,14 @@ namespace App\Controllers;
 use App\Core\Auth;
 use App\Services\TicketService;
 use App\Core\Csrf;
+use App\Repositories\CommentRepository;
 
 class TicketController
 {
-    public function __construct(private TicketService $ticketService)
-    {
+    public function __construct(
+        private TicketService $ticketService,
+        private CommentRepository $commentRepository
+    ) {
     }
 
     public function index(): void
@@ -141,6 +144,8 @@ class TicketController
 
         $error = $_SESSION['ticket_error'] ?? null;
         unset($_SESSION['ticket_error']);
+
+        $comments = $this->commentRepository->findForTicket($ticketId);
 
         require dirname(__DIR__, 2) . '/views/tickets/show.php';
     }

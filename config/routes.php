@@ -12,6 +12,9 @@ use App\Controllers\TicketController;
 use App\Repositories\TicketRepository;
 use App\Services\TicketService;
 use App\Repositories\DeviceRepository;
+use App\Controllers\CommentController;
+use App\Repositories\CommentRepository;
+use App\Services\CommentService;
 
 return function (Router $router, array $config): void {
     $router->get('/', function () use ($config): void {
@@ -32,7 +35,18 @@ return function (Router $router, array $config): void {
         $ticketRepository,
         $deviceRepository
     );
-    $ticketController = new TicketController($ticketService);
+    $commentRepository = new CommentRepository($database);
+    $commentService = new CommentService($commentRepository);
+
+    $ticketController = new TicketController(
+        $ticketService,
+        $commentRepository
+    );
+
+    $commentController = new CommentController(
+        $commentService,
+        $ticketService
+    );
 
     $router->get('/tickets', [$ticketController, 'index']);
     $router->get('/tickets/create', [$ticketController, 'create']);
@@ -59,5 +73,8 @@ return function (Router $router, array $config): void {
         [$ticketController, 'resolve']
     );
 
-
+    $router->post(
+        '/tickets/{id}/comments',
+        [$commentController, 'store']
+    );
 };

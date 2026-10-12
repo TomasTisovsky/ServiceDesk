@@ -3,12 +3,22 @@
 /** @var array $user */
 /** @var string $csrfToken */
 /** @var string|null $error */
+/** @var array $comments */
+
+
 
 $isTechnician = $user['role'] === 'TECHNICIAN';
 
 $isAssignedTechnician = $isTechnician
     && $ticket['technician_id'] !== null
     && (int) $ticket['technician_id'] === (int) $user['id'];
+
+$canComment = $ticket['status'] !== 'RESOLVED'
+    && (
+        ($user['role'] === 'EMPLOYEE'
+            && (int) $ticket['author_id'] === (int) $user['id'])
+        || $isAssignedTechnician
+    );
 
 $escape = static fn(string $value): string =>
 htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -42,6 +52,40 @@ $formatTime = static function (?string $value): string {
     <title>Detail tiketu | ServiceDesk</title>
 </head>
 <body>
+<h2>Komentáre</h2>
+
+<?php if ($comments === []): ?>
+    <p>Zatiaľ bez komentárov.</p>
+<?php else: ?>
+    <?php foreach ($comments as $comment): ?>
+        <article>
+            <p>
+                <strong><?= $escape($comment['author_name']) ?></strong>
+                – <?= $escape($formatTime($comment['created_at'])) ?>
+            </p>
+
+            <p><?= nl2br($escape($comment['content'])) ?></p>
+        </article>
+    <?php endforeach; ?>
+<?php endif; ?>
+
+<?php if ($canComment): ?>
+    <form
+            method="post"
+            action="/tickets/<?= (int) $ticket['id'] ?>/comments"
+    >
+        <input
+                type="hidden"
+                name="csrf_token"
+                value="<?= $escape($csrfToken) ?>"
+        >
+
+        <label for="content">Nový komentár</label>
+        <textarea id="content" name="content" rows="4" required></textarea>
+
+        <button type="submit">Pridať komentár</button>
+    </form>
+<?php endif; ?>
 <main>
     <p><a href="/tickets">Späť na tikety</a></p>
 
