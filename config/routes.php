@@ -44,5 +44,20 @@ return function (Router $router, array $config): void {
     $router->post('/logout', [$authController, 'logout']);
     $router->get('/tickets/{id}', [$ticketController, 'show']);
 
+    $router->post(
+        '/tickets/{id}/claim',
+        [$ticketController, 'claim']
+    );
+
+    $router->post(
+        '/tickets/{id}/priority',
+        [$ticketController, 'changePriority']
+    );
+
+    $router->post(
+        '/tickets/{id}/resolve',
+        [$ticketController, 'resolve']
+    );
+
 
 };

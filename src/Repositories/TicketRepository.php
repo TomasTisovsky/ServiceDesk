@@ -138,7 +138,7 @@ class TicketRepository
         $statement = oci_parse(
             $connection,
             'SELECT
-            t.id, t.title, t.description,
+            t.id, t.technician_id,t.title, t.description,
             t.author_id, t.status, t.priority,
             t.resolution,             t.resolution,
             TO_CHAR(
@@ -185,6 +185,101 @@ class TicketRepository
             }
 
             return array_change_key_case($row, CASE_LOWER);
+        } finally {
+            oci_free_statement($statement);
+        }
+    }
+
+    public function claim(int $ticketId, int $technicianId): bool
+    {
+        return $this->executeChange(
+            "UPDATE tickets
+         SET technician_id = :technician_id,
+             status = 'IN_PROGRESS'
+         WHERE id = :ticket_id
+           AND status = 'NEW'
+           AND technician_id IS NULL",
+            [
+                ':ticket_id' => $ticketId,
+                ':technician_id' => $technicianId,
+            ]
+        );
+    }
+
+    public function changePriority(
+        int $ticketId,
+        int $technicianId,
+        string $priority
+    ): bool {
+        return $this->executeChange(
+            "UPDATE tickets
+         SET priority = :priority
+         WHERE id = :ticket_id
+           AND technician_id = :technician_id
+           AND status = 'IN_PROGRESS'",
+            [
+                ':ticket_id' => $ticketId,
+                ':technician_id' => $technicianId,
+                ':priority' => $priority,
+            ]
+        );
+    }
+
+    public function resolve(
+        int $ticketId,
+        int $technicianId,
+        string $resolution
+    ): bool {
+        return $this->executeChange(
+            "UPDATE tickets
+         SET resolution = :resolution,
+             resolved_at = SYS_EXTRACT_UTC(SYSTIMESTAMP),
+             status = 'RESOLVED'
+         WHERE id = :ticket_id
+           AND technician_id = :technician_id
+           AND status = 'IN_PROGRESS'",
+            [
+                ':ticket_id' => $ticketId,
+                ':technician_id' => $technicianId,
+                ':resolution' => $resolution,
+            ]
+        );
+    }
+
+    private function executeChange(string $sql, array $parameters): bool
+    {
+        $connection = $this->database->connection();
+        $statement = oci_parse($connection, $sql);
+
+        if ($statement === false) {
+            throw new RuntimeException('Príprava zmeny tiketu zlyhala.');
+        }
+
+        try {
+            foreach ($parameters as $name => &$value) {
+                if (!oci_bind_by_name($statement, $name, $value)) {
+                    throw new RuntimeException('Naviazanie údajov zlyhalo.');
+                }
+            }
+            unset($value);
+
+            if (!oci_execute($statement, OCI_NO_AUTO_COMMIT)) {
+                throw new RuntimeException('Zmena tiketu zlyhala.');
+            }
+
+            if (oci_num_rows($statement) !== 1) {
+                oci_rollback($connection);
+                return false;
+            }
+
+            if (!oci_commit($connection)) {
+                throw new RuntimeException('Potvrdenie zmeny zlyhalo.');
+            }
+
+            return true;
+        } catch (\Throwable $exception) {
+            oci_rollback($connection);
+            throw $exception;
         } finally {
             oci_free_statement($statement);
         }

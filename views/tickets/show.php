@@ -1,5 +1,14 @@
 <?php
 /** @var array $ticket */
+/** @var array $user */
+/** @var string $csrfToken */
+/** @var string|null $error */
+
+$isTechnician = $user['role'] === 'TECHNICIAN';
+
+$isAssignedTechnician = $isTechnician
+    && $ticket['technician_id'] !== null
+    && (int) $ticket['technician_id'] === (int) $user['id'];
 
 $escape = static fn(string $value): string =>
 htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -39,6 +48,9 @@ $formatTime = static function (?string $value): string {
     <h1>
         #<?= (int) $ticket['id'] ?>
         – <?= $escape($ticket['title']) ?>
+        <?php if ($error !== null): ?>
+            <p role="alert"><?= $escape($error) ?></p>
+        <?php endif; ?>
     </h1>
 
     <dl>
@@ -70,6 +82,79 @@ $formatTime = static function (?string $value): string {
     <?php if ($ticket['resolution'] !== null): ?>
         <h2>Spôsob riešenia</h2>
         <p><?= nl2br($escape($ticket['resolution'])) ?></p>
+    <?php endif; ?>
+
+    <?php if ($isTechnician && $ticket['status'] === 'NEW'): ?>
+        <h2>Prevzatie tiketu</h2>
+
+        <form
+                method="post"
+                action="/tickets/<?= (int) $ticket['id'] ?>/claim"
+        >
+            <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?= $escape($csrfToken) ?>"
+            >
+
+            <button type="submit">Prevziať tiket</button>
+        </form>
+    <?php endif; ?>
+
+    <?php if ($isAssignedTechnician
+        && $ticket['status'] === 'IN_PROGRESS'): ?>
+
+        <h2>Zmena priority</h2>
+
+        <form
+                method="post"
+                action="/tickets/<?= (int) $ticket['id'] ?>/priority"
+        >
+            <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?= $escape($csrfToken) ?>"
+            >
+
+            <label for="priority">Priorita</label>
+
+            <select id="priority" name="priority" required>
+                <?php foreach ($priorities as $value => $label): ?>
+                    <option
+                            value="<?= $escape($value) ?>"
+                        <?= $ticket['priority'] === $value ? 'selected' : '' ?>
+                    >
+                        <?= $escape($label) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
+            <button type="submit">Uložiť prioritu</button>
+        </form>
+
+        <h2>Vyriešenie tiketu</h2>
+
+        <form
+                method="post"
+                action="/tickets/<?= (int) $ticket['id'] ?>/resolve"
+        >
+            <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="<?= $escape($csrfToken) ?>"
+            >
+
+            <label for="resolution">Spôsob riešenia</label>
+
+            <textarea
+                    id="resolution"
+                    name="resolution"
+                    rows="6"
+                    required
+            ></textarea>
+
+            <button type="submit">Označiť ako vyriešený</button>
+        </form>
     <?php endif; ?>
 </main>
 </body>

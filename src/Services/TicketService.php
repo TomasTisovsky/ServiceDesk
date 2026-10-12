@@ -102,5 +102,67 @@ class TicketService
 
         return $ticket;
     }
+    public function claim(
+        int $ticketId,
+        int $userId,
+        string $role
+    ): bool {
+        $this->requireTechnician($role);
+
+        return $this->tickets->claim($ticketId, $userId);
+    }
+
+    public function changePriority(
+        int $ticketId,
+        int $userId,
+        string $role,
+        string $priority
+    ): bool {
+        $this->requireTechnician($role);
+
+        if (!in_array($priority, ['LOW', 'MEDIUM', 'HIGH'], true)) {
+            throw new \InvalidArgumentException('Vyber platnú prioritu.');
+        }
+
+        return $this->tickets->changePriority(
+            $ticketId,
+            $userId,
+            $priority
+        );
+    }
+
+    public function resolve(
+        int $ticketId,
+        int $userId,
+        string $role,
+        string $resolution
+    ): bool {
+        $this->requireTechnician($role);
+
+        $resolution = trim($resolution);
+
+        if ($resolution === '') {
+            throw new \InvalidArgumentException('Vyplň spôsob riešenia.');
+        }
+
+        if (strlen($resolution) > 4000) {
+            throw new \InvalidArgumentException(
+                'Spôsob riešenia môže mať najviac 4000 bajtov.'
+            );
+        }
+
+        return $this->tickets->resolve(
+            $ticketId,
+            $userId,
+            $resolution
+        );
+    }
+
+    private function requireTechnician(string $role): void
+    {
+        if ($role !== 'TECHNICIAN') {
+            throw new \LogicException('Akcia je dostupná iba technikovi.');
+        }
+    }
 
 }
