@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Core;
 
 class Router
@@ -9,24 +8,47 @@ class Router
 
     public function get(string $path, callable $handler): void
     {
-        $this->routes['GET'][$path] = $handler;
+        $this->add('GET', $path, $handler);
     }
 
     public function post(string $path, callable $handler): void
     {
-        $this->routes['POST'][$path] = $handler;
+        $this->add('POST', $path, $handler);
+    }
+
+    private function add(
+        string $method,
+        string $path,
+        callable $handler
+    ): void {
+        $quotedPath = preg_quote($path, '~');
+
+        $pattern = str_replace(
+            '\{id\}',
+            '([1-9][0-9]*)',
+            $quotedPath
+        );
+
+        $this->routes[$method][] = [
+            'pattern' => '~^' . $pattern . '$~',
+            'handler' => $handler,
+        ];
     }
 
     public function dispatch(string $method, string $path): void
     {
-        $handler = $this->routes[$method][$path] ?? null;
+        foreach ($this->routes[$method] ?? [] as $route) {
+            if (preg_match($route['pattern'], $path, $matches) !== 1) {
+                continue;
+            }
 
-        if ($handler === null) {
-            http_response_code(404);
-            echo '404 – Stránka neexistuje.';
+            array_shift($matches);
+
+            ($route['handler'])(...$matches);
             return;
         }
 
-        $handler();
+        http_response_code(404);
+        echo '404 – Stránka neexistuje.';
     }
 }

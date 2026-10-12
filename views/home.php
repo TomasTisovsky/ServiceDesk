@@ -24,6 +24,8 @@ $appName = htmlspecialchars(
     <?= htmlspecialchars($user['name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
 </p>
 
+<p><a href="/tickets">Zobraziť tikety</a></p>
+
 <form method="post" action="/logout">
     <input
             type="hidden"
@@ -33,5 +35,6 @@ $appName = htmlspecialchars(
 
     <button type="submit">Odhlásiť sa</button>
 </form>
+
 </body>
 </html>
